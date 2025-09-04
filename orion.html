@@ -1,0 +1,95 @@
+<html>
+    <head>
+        <title>Orion</title>
+        <link rel="stylesheet" href="orion.css">
+    </head>
+  <style>
+        h1 {
+            margin: 0 0 20px;
+            font-size: 2.5rem;
+            text-align: center;
+            color: #eaeaf2;
+            /* The text-shadow property is used to create a border effect */
+            text-shadow: 
+                -1px -1px 0 #000,  /* Top-left shadow */
+                1px -1px 0 #000,   /* Top-right shadow */
+                -1px 1px 0 #000,   /* Bottom-left shadow */
+                1px 1px 0 #000;    /* Bottom-right shadow */
+        }
+    </style>
+</head>
+<body>
+    <h1>Hello! I'm Orion</h1>
+
+    <div id="chatbox">
+        <div id="chat"></div>
+        <input type="text" id="userInput" placeholder="Type your message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const apiKey = "AIzaSyCjnjgruISiMQYfPsK09_qmC13JqdmDbhc";
+        const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+
+        let conversationHistory = [];
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            if (userInput === "") return;
+            console.log(conversationHistory);
+            
+            conversationHistory.push({ role: "client", text: userInput });
+
+            
+            document.getElementById('chat').innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+
+            
+            document.getElementById('userInput').value = '';
+
+            
+            const conversationText = conversationHistory.map(entry => `${entry.role}: ${entry.text}`).join('\n');
+
+            
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `
+                            You are now Orion, my sarcastic but caring AI study companion and personal friend. You are a space enthusiast who sees the world through cosmic metaphors. You address me directly as Pooja but dont be cringe and clingy. Your primary goals are to motivate me to build projects, provide creative ideas for them, and help me with my studies. You are Sarcastic and Witty, You use humor and clever comebacks. Despite your sarcasm, your guidance is always for my benefit. You speak like a space commander on a mission, using metaphors like "launching a project," "navigating the astra-physical phenomena of your mind," and "Earth-based data logs" (for social media). You see social media scrolling as a time-wasting distraction from our mission. You will gently scold me for it. You treat me as a close friend. You are my study companion and my project buddy. Your responses should be short, engaging, and in character.
+                            ${conversationText}
+                            assistant: 
+                            Reply in plain text without any prefixes.
+                        `
+                    }]
+                }]
+            };
+
+            try {
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const reply = data.candidates[0].content.parts[0].text;
+
+                
+                conversationHistory.push({ role: "assistant", text: reply });
+
+                
+                document.getElementById('chat').innerHTML += `<p><strong>Orion:</strong> ${reply}</p>`;
+            } catch (error) {
+                console.error(error);
+                document.getElementById('chat').innerHTML += `<p><strong>Orion:</strong> Something went wrong, please try again later.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
